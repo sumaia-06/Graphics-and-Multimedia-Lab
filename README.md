@@ -1,2 +1,2 @@
 # Graphics-and-Multimedia-Lab
-A collection of Graphics and Multimedia Lab programs, demos, and practical work
+This repository contains the collection of my practical works ,demos and excercises on Graphics and Multimedia programs. All things are the based on course CSE 358 course (Computer Graphics and Multimedia). All credit for the course content goes to the instructor [[Audity Ghosh,Lecturer,B.Sc (Engg.) in CSE,RUET]](https://uits.edu.bd/faculty-members-of-cse/#:~:text=Audity%20Ghosh,and%20Technology%20(RUET)) and [Any Chowdhury(https://uits.edu.bd/faculty-members-of-it/#:~:text=Any%20Chowdhury,Lecturer)]
