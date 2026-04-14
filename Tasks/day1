@@ -1,5 +1,7 @@
 ## CREATE A CYAN COLOR WINDOW
+
 ---
+
 #include "glad.h"
 #include "glfw3.h"
 
