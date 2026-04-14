@@ -1,5 +1,4 @@
-## CREATE A CYAN COLOR WINDOW
-
+## **CREATE A CYAN COLOR WINDOW**
 ---
 
 #include "glad.h"
