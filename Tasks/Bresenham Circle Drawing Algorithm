@@ -1,0 +1,189 @@
+
+#include "glad.h"
+#include "glfw3.h"
+
+#include <iostream>
+#include <vector>
+#include <utility>
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height);
+void processInput(GLFWwindow *window);
+
+// settings
+const unsigned int SCR_WIDTH = 800;
+const unsigned int SCR_HEIGHT = 600;
+
+const char *vertexShaderSource = "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos, 1.0);\n"
+    "}\0";
+
+const char *fragmentShaderSource = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0, 1.0, 1.0, 1.0);\n"
+    "}\n\0";
+
+
+// Convert pixel to NDC, do the math for (800,600) and center (400,300)
+std::pair<float, float> toNDC(int x, int y)
+{
+    float xn = (2.0f * x) / SCR_WIDTH - 1.0f;
+    float yn = (2.0f * y) / SCR_HEIGHT - 1.0f;
+    return {xn, yn};
+}
+
+
+//8 point symmetry of each point
+void plotCirclePoints(int x, int y, int xc, int yc,std::vector<float> &points)
+{
+    std::vector<std::pair<int,int>> pts = {
+        { xc + x, yc + y }, { xc - x, yc + y },
+        { xc + x, yc - y }, { xc - x, yc - y },
+        { xc + y, yc + x }, { xc - y, yc + x },
+        { xc + y, yc - x }, { xc - y, yc - x }
+    };
+
+    for (auto &pt : pts)
+    {
+        auto ndc = toNDC(pt.first, pt.second);
+
+        points.push_back(ndc.first);
+        points.push_back(ndc.second);
+        points.push_back(0.0f);
+    }
+}
+
+std::vector<float> BresenhamCircle(int xc, int yc, int r)
+{
+    std::vector<float> points;
+
+    int x = 0;
+    int y = r;
+
+    int p = 3 - 2 * r;   // initial decision parameter
+
+    while (x <= y)
+    {
+        plotCirclePoints(x, y, xc, yc, points);
+
+        x++;
+
+        if (p < 0)
+        {
+            // choose E
+            p = p + 4 * x + 6;
+        }
+        else
+        {
+            // choose SE
+            y--;
+            p = p + 4 * (x - y) + 10;
+        }
+    }
+
+    return points;
+}
+
+int main()
+{
+    glfwInit();
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "Bresenham Circle", NULL, NULL);
+    if (!window)
+    {
+        std::cout << "Failed to create window\n";
+        glfwTerminate();
+        return -1;
+    }
+    glfwMakeContextCurrent(window);
+    glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cout << "Failed to init GLAD\n";
+        return -1;
+    }
+
+    // shaders
+    unsigned int vs = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vs, 1, &vertexShaderSource, NULL);
+    glCompileShader(vs);
+
+    unsigned int fs = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fs, 1, &fragmentShaderSource, NULL);
+    glCompileShader(fs);
+
+    unsigned int shaderProgram = glCreateProgram();
+    glAttachShader(shaderProgram, vs);
+    glAttachShader(shaderProgram, fs);
+    glLinkProgram(shaderProgram);
+
+    glDeleteShader(vs);
+    glDeleteShader(fs);
+
+    // circle parameters (pixel space)
+    int xc = SCR_WIDTH / 2; // you can customize
+    int yc = SCR_HEIGHT / 2;
+    int r  = 200;
+
+    std::vector<float> vertices = BresenhamCircle(xc, yc, r);
+
+    // buffers
+    unsigned int VAO, VBO;
+    glGenVertexArrays(1, &VAO);
+    glGenBuffers(1, &VBO);
+
+    glBindVertexArray(VAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(float), vertices.data(), GL_STATIC_DRAW);
+
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glBindVertexArray(0);
+
+    // render loop
+    while (!glfwWindowShouldClose(window))
+    {
+        processInput(window);
+
+        glClearColor(0, 0, 0, 1);
+        glClear(GL_COLOR_BUFFER_BIT);
+
+        glUseProgram(shaderProgram);
+        glBindVertexArray(VAO);
+
+        glPointSize(3.0f);
+        glDrawArrays(GL_POINTS, 0, vertices.size() / 3);
+
+        glfwSwapBuffers(window);
+        glfwPollEvents();
+    }
+
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &VBO);
+    glDeleteProgram(shaderProgram);
+
+    glfwTerminate();
+    return 0;
+}
+
+void processInput(GLFWwindow *window)
+{
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
+        glfwSetWindowShouldClose(window, true);
+}
+
+void framebuffer_size_callback(GLFWwindow* window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
