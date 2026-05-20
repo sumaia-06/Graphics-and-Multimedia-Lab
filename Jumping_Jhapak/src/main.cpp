@@ -224,7 +224,7 @@ int main()
             if (xOverlap && yOverlap) {
                 gameOver = true;
                 std::cout << "GAME OVER! Final Score: " << score << std::endl;
-                std::string title = "GAME OVER! Score: " + std::to_string(score) + " |  R to reset | Press J to quit ";
+                std::string title = "GAME OVER! Score: " + std::to_string(score) + " |  R to reset | Press Q to quit ";
                 glfwSetWindowTitle(window, title.c_str());
             }
         }
@@ -278,8 +278,8 @@ int main()
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if (action == GLFW_PRESS) {
-        // J = quit
-        if (key == GLFW_KEY_J)
+        // Q = quit
+        if (key == GLFW_KEY_Q)
             glfwSetWindowShouldClose(window, true);
 
         // R = reset
