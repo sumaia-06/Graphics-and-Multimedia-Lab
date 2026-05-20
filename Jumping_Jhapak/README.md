@@ -50,7 +50,7 @@ The player controls a small star-like character that must avoid moving obstacles
 | `↑ Arrow`   | Jump |
 | `Left Click` | Jump |
 | `R`         | Restart game |
-| `J`         | Quit game |
+| `Q`         | Quit game |
 
 ---
 
